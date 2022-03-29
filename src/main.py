@@ -1,10 +1,8 @@
 import json
-import pickle
 import time
 from pathlib import Path
 
 import requests
-import telethon.sync
 from bs4 import BeautifulSoup
 from feedgen.feed import FeedGenerator
 from telethon import TelegramClient
@@ -14,13 +12,12 @@ from telethon.tl.types import InputPeerChannel, MessageMediaPhoto, MessageMediaW
 from src.config import Config
 
 OFFLINE = False
-telegram_client = None   
+telegram_client = None
 
-config = Config()                    
+config = Config()
 
 
 def getTelegramClient():
-    s = telethon.sync.__all__
     global telegram_client
     if telegram_client:
         return telegram_client
@@ -41,19 +38,19 @@ def extractTitle(text):
     return all_text.split("\n")[0][:80]
 
 
-def dumpMessagesToDisk(messages):
-    cookie_path = "messages.pkl"
-    with open(cookie_path, "wb") as f:
-        pickle.dump(messages, f)
-
-
-def getMessagesFromDisk():
-    cookie_path = "messages.pkl"
-    try:
-        with open(cookie_path, "rb") as f:
-            return pickle.load(f)
-    except FileNotFoundError:
-        return None
+# def dumpMessagesToDisk(messages):
+#     cookie_path = "messages.pkl"
+#     with open(cookie_path, "wb") as f:
+#         pickle.dump(messages, f)
+#
+#
+# def getMessagesFromDisk():
+#     cookie_path = "messages.pkl"
+#     try:
+#         with open(cookie_path, "rb") as f:
+#             return pickle.load(f)
+#     except FileNotFoundError:
+#         return None
 
 
 def loadChannelsPosts(channel, entity):
@@ -70,9 +67,9 @@ def loadChannelsPosts(channel, entity):
 
     messages = list(t)
 
-    messages_json = [m.to_json() for m in messages]
-
-    message = messages[0]
+    # messages_json = [m.to_json() for m in messages]
+    #
+    # message = messages[0]
 
     # print(messages_json)
     # dumpMessagesToDisk(messages_json)
@@ -88,7 +85,7 @@ def isAd(post):
     return False
 
 
-## here parsing telegram post to inner object
+# here parsing telegram post to inner object
 def messageToPost(message, channel):
     text = ""
     if message.text is not None:
@@ -301,7 +298,7 @@ def loadChannelsInfo(channel_list_file):
 
     changed = False
     for channel_name in channel_names:
-        if not channel_name in channel_info:
+        if channel_name not in channel_info:
             print("new channel_name: " + channel_name)
             user = getTelegramClient().get_input_entity(channel_name)
             info = {"channel_id": user.channel_id, "access_hash": user.access_hash}
@@ -325,7 +322,7 @@ def loadChannelsInfo(channel_list_file):
 def sendHeartbeat():
     h = config.urls.heartbeat_auth.split(":")
     headers = {h[0]: h[1]}
-    r = requests.get(config.urls.heartbeat_path, headers=headers, timeout=10)
+    requests.get(config.urls.heartbeat_path, headers=headers, timeout=10)
 
 
 def main():
