@@ -14,7 +14,7 @@ from telethon.tl.types import InputPeerChannel, MessageMediaPhoto, MessageMediaW
 from src.config import Config
 
 OFFLINE = False
-telegram_client = None
+telegram_client = None   
 
 config = Config()
 
