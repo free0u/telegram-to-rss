@@ -16,7 +16,7 @@ from src.config import Config
 OFFLINE = False
 telegram_client = None   
 
-config = Config()
+config = Config()                    
 
 
 def getTelegramClient():
