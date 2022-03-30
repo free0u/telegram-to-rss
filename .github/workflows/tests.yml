@@ -11,6 +11,8 @@ jobs:
       with:
         python-version: 3.9
         architecture: x64
+    - name: Set up package requirements
+      run: pip install -r requirements.txt
     - name: Set up dev requirements
       run: pip install -r requirements-dev.txt
 #    - run: flake8 src
