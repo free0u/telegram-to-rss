@@ -15,10 +15,16 @@ jobs:
       run: pip install -r requirements.txt
     - name: Set up dev requirements
       run: pip install -r requirements-dev.txt
-#    - run: flake8 src
-    - name: Install package
+    - name: Install local package
       run: |
           pip install .
+#    - name: Run flake8
+#      run: flake8 src
+    - run: coverage erase
     - name: Run test
       run: |
-          pytest -ra
+          pytest --cov -ra
+    - name: Upload codecov
+      run: coverage xml --fail-under=0 && codecov
+      env:
+        CODECOV_TOKEN: ${{secrets.CODECOV_TOKEN}}
