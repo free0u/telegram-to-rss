@@ -4,3 +4,4 @@ max-complexity = 10
 ignore = E203,W503,E501
 max-line-length = 88
 import-order-style = google
+per-file-ignores = tests/*:S101

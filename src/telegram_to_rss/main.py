@@ -5,32 +5,31 @@ from pathlib import Path
 import requests
 from bs4 import BeautifulSoup
 from feedgen.feed import FeedGenerator
-from telethon import TelegramClient
 from telethon.errors import ChannelInvalidError
+from telethon.sync import TelegramClient
 from telethon.tl.types import InputPeerChannel, MessageMediaPhoto, MessageMediaWebPage
+
+# from config import Config
+from .config import Config
 
 # from . import
 # # from config import Config
 # from telegram_to_rss.config import Config
-
 # import telegram_to_rss
 # from config import Config
 # from . import config
 
-# from config import Config
-
 OFFLINE = False
 telegram_client = None
 
-# config = Config()
-config = None
+config = Config()
 
 
 def get_hello():
     return "hello"
 
 
-def getTelegramClient():
+def get_telegram_client():
     global telegram_client
     if telegram_client:
         return telegram_client
@@ -45,7 +44,7 @@ def getTelegramClient():
     return telegram_client
 
 
-def extractTitle(text):
+def extract_title(text):
     soup = BeautifulSoup(text, features="lxml")
     all_text = "".join(soup.findAll(text=True))
     return all_text.split("\n")[0][:80]
@@ -66,7 +65,7 @@ def extractTitle(text):
 #         return None
 
 
-def loadChannelsPosts(channel, entity):
+def load_channels_posts(channel, entity):
     # if OFFLINE:
     #     loaded = getMessagesFromDisk()
     #     for m in loaded:
@@ -75,7 +74,7 @@ def loadChannelsPosts(channel, entity):
 
     print("loadChannelsPosts")
     print(str(channel) + " " + str(entity))
-    client = getTelegramClient()
+    client = get_telegram_client()
     t = client.get_messages(entity, limit=15)
 
     messages = list(t)
@@ -90,7 +89,7 @@ def loadChannelsPosts(channel, entity):
     return messages
 
 
-def isAd(post):
+def is_ad(post):
     if "#нативнаяинтеграция" in post["text"]:
         return True
     if "РЕКЛАМИЩЕ ВЕЛИКОЕ" in post["title"]:
@@ -99,15 +98,15 @@ def isAd(post):
 
 
 # here parsing telegram post to inner object
-def messageToPost(message, channel):
+def message_to_post(message, channel):
     text = ""
     if message.text is not None:
         text = message.text
-    title = extractTitle(text)
+    title = extract_title(text)
     text = text.replace("\n", "<br/>")
 
     date = message.date
-    mediaType = ""
+    media_type = ""
 
     if len(title) == 0:
         title = str(message.id)
@@ -115,25 +114,25 @@ def messageToPost(message, channel):
     # print(message.to_json())
     post = {}
     if message.media:
-        needAddTag = True
+        need_add_tag = True
 
         if isinstance(message.media, MessageMediaPhoto):
-            needAddTag = False
+            need_add_tag = False
             image = message.photo
 
-            photoPath = "./images/" + channel + "/" + str(image.id) + ".jpg"
-            my_file = Path(photoPath)
+            photo_path = "./images/" + channel + "/" + str(image.id) + ".jpg"
+            my_file = Path(photo_path)
             if my_file.is_file():
                 pass
             else:
-                message.download_media(file=photoPath)
-            imgTag = (
-                '<img src="' + config.urls.rss_path + photoPath[2:] + '" width="800">'
+                message.download_media(file=photo_path)
+            img_tag = (
+                '<img src="' + config.urls.rss_path + photo_path[2:] + '" width="800">'
             )
-            text = imgTag + "<br/>" + text
+            text = img_tag + "<br/>" + text
         # print(text)
         if isinstance(message.media, MessageMediaWebPage):
-            needAddTag = False
+            need_add_tag = False
 
             if message.web_preview:
                 # preview info
@@ -148,19 +147,19 @@ def messageToPost(message, channel):
                 image = message.photo
                 if image:
                     # print(message.to_json())
-                    photoPath = "./images/" + channel + "/" + str(image.id) + ".jpg"
-                    my_file = Path(photoPath)
+                    photo_path = "./images/" + channel + "/" + str(image.id) + ".jpg"
+                    my_file = Path(photo_path)
                     if my_file.is_file():
                         pass
                     else:
-                        message.download_media(file=photoPath)
-                    imgTag = (
+                        message.download_media(file=photo_path)
+                    img_tag = (
                         '<img src="'
                         + config.urls.rss_path
-                        + photoPath[2:]
+                        + photo_path[2:]
                         + '" width="400">'
                     )
-                    text += imgTag
+                    text += img_tag
 
                 text += "<br/>-------------------<br/>"
             pass
@@ -170,35 +169,35 @@ def messageToPost(message, channel):
         #     print(message.file)
         #     pass
 
-        if needAddTag:
-            mediaType = str(type(message.media).__name__)
-            text = "📦 " + mediaType + "<br/>" + text
+        if need_add_tag:
+            media_type = str(type(message.media).__name__)
+            text = "📦 " + media_type + "<br/>" + text
 
     post["text"] = text
     post["title"] = str(title)
-    post["mediaType"] = mediaType
+    post["media_type"] = media_type
     post["date"] = date
     post["url"] = "https://t.me/" + channel + "/" + str(message.id)
 
-    if isAd(post):
+    if is_ad(post):
         post["title"] = "РЕКЛАМА {}".format(post["title"])
 
     return post
 
 
-def getPosts(channel, entity):
+def get_posts(channel, entity):
     posts = []
-    messages = loadChannelsPosts(channel, entity)
+    messages = load_channels_posts(channel, entity)
     for message in messages:
-        post = messageToPost(message, channel)
+        post = message_to_post(message, channel)
         if post is not None:
             posts.append(post)
 
     return posts
 
 
-def makeRss(channel, entity):
-    posts = getPosts(channel, entity)
+def make_rss(channel, entity):
+    posts = get_posts(channel, entity)
     n = len(posts)
 
     print("\n\nGroup processing")
@@ -275,16 +274,16 @@ def makeRss(channel, entity):
         fe.content(content=p["text"])
         fe.link(href=p["url"])
 
-    fileName = "./rss/" + channel + "/rss.xml"
-    fileNameDebug = "./rss/" + "debug" + "/rss.xml"
-    # print(fileName)
-    fg.rss_file(fileName, encoding="UTF-8")
-    fg.rss_file(fileNameDebug, encoding="UTF-8")
+    file_name = "./rss/" + channel + "/rss.xml"
+    file_name_debug = "./rss/" + "debug" + "/rss.xml"
+    # print(file_name)
+    fg.rss_file(file_name, encoding="UTF-8")
+    fg.rss_file(file_name_debug, encoding="UTF-8")
     print("stop generate rss file")
 
 
-def removeChannelFromCache(channel_name):
-    channel_info = {}
+def remove_channel_from_cache(channel_name):
+    # channel_info = {}
     with open("channels_info.json", "r") as json_file:
         channel_info = json.load(json_file)
 
@@ -293,8 +292,8 @@ def removeChannelFromCache(channel_name):
             json.dump(channel_info, outfile, sort_keys=True, indent=4)
 
 
-def loadChannelsInfo(channel_list_file):
-    channel_names = []
+def load_channels_info(channel_list_file):
+    # channel_names = []
     with open(channel_list_file, "r") as f:
         channel_names = f.readlines()
 
@@ -305,7 +304,7 @@ def loadChannelsInfo(channel_list_file):
     )
     print(channel_names)
 
-    channel_info = {}
+    # channel_info = {}
     with open("channels_info.json", "r") as json_file:
         channel_info = json.load(json_file)
 
@@ -313,7 +312,7 @@ def loadChannelsInfo(channel_list_file):
     for channel_name in channel_names:
         if channel_name not in channel_info:
             print("new channel_name: " + channel_name)
-            user = getTelegramClient().get_input_entity(channel_name)
+            user = get_telegram_client().get_input_entity(channel_name)
             info = {"channel_id": user.channel_id, "access_hash": user.access_hash}
             channel_info[channel_name] = info
             changed = True
@@ -332,7 +331,7 @@ def loadChannelsInfo(channel_list_file):
     return channels
 
 
-def sendHeartbeat():
+def send_heartbeat():
     h = config.urls.heartbeat_auth.split(":")
     headers = {h[0]: h[1]}
     requests.get(config.urls.heartbeat_path, headers=headers, timeout=10)
@@ -340,20 +339,20 @@ def sendHeartbeat():
 
 def main():
     # channels = loadChannelsInfo("channels_test.txt")
-    channels = loadChannelsInfo("channels.txt")
+    channels = load_channels_info("channels.txt")
 
     for c in channels:
         try:
             Path("./rss/" + c[0]).mkdir(parents=True, exist_ok=True)
             Path("./images/" + c[0]).mkdir(parents=True, exist_ok=True)
-            makeRss(c[0], c[1])
+            make_rss(c[0], c[1])
             print("CHANNEL ", c, "done")
             time.sleep(5)
         except ChannelInvalidError as e:
             with open("error.log.txt", "a") as f:
                 f.write("ChannelInvalidError " + str(c) + "\n")
             print("CHANNEL " + str(c) + " fail" + str(e))
-            removeChannelFromCache(c[0])
+            remove_channel_from_cache(c[0])
             print("removed channel {} from cache.info".format(c[0]))
             exit(1)
 
@@ -363,9 +362,9 @@ def main():
             print(url)
             f.write('<a href="{}">{}</a></br>\n'.format(url, url))
 
-    sendHeartbeat()
+    send_heartbeat()
 
 
 # main()
 
-print("run_main")
+# print("run_main")

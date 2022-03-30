@@ -18,8 +18,8 @@ jobs:
     - name: Install local package
       run: |
           pip install .
-#    - name: Run flake8
-#      run: flake8 src
+    - name: Run flake8
+      run: flake8 src tests
     - run: coverage erase
     - name: Run test
       run: |
