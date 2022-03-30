@@ -1,0 +1,10 @@
+[tool.coverage.paths]
+source = ["src", "*/site-packages"]
+
+[tool.coverage.run]
+branch = true
+source = ["telegram_to_rss"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 100
