@@ -10,4 +10,10 @@ jobs:
         python-version: 3.9
         architecture: x64
     - run: pip install -r requirements-dev.txt
-    - run: flake8 src
+#    - run: flake8 src
+    - name: Install package
+        run: |
+          pip install .
+    - name: Run test
+        run: |
+          pytest -ra

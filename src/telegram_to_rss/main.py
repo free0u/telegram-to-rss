@@ -9,12 +9,25 @@ from telethon import TelegramClient
 from telethon.errors import ChannelInvalidError
 from telethon.tl.types import InputPeerChannel, MessageMediaPhoto, MessageMediaWebPage
 
-from src.config import Config
+# from . import
+# # from config import Config
+# from telegram_to_rss.config import Config
+
+# import telegram_to_rss
+# from config import Config
+# from . import config
+
+# from config import Config
 
 OFFLINE = False
 telegram_client = None
 
-config = Config()
+# config = Config()
+config = None
+
+
+def get_hello():
+    return "hello"
 
 
 def getTelegramClient():
@@ -353,4 +366,6 @@ def main():
     sendHeartbeat()
 
 
-main()
+# main()
+
+print("run_main")
