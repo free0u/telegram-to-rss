@@ -22,7 +22,7 @@ from .config import Config
 OFFLINE = False
 telegram_client = None
 
-config = Config()
+config = None
 
 
 def get_hello():
@@ -338,6 +338,8 @@ def send_heartbeat():
 
 
 def main():
+    global config
+    config = Config()
     # channels = loadChannelsInfo("channels_test.txt")
     channels = load_channels_info("channels.txt")
 
