@@ -7,17 +7,13 @@ from bs4 import BeautifulSoup
 from feedgen.feed import FeedGenerator
 from telethon.errors import ChannelInvalidError
 from telethon.sync import TelegramClient
-from telethon.tl.types import InputPeerChannel, MessageMediaPhoto, MessageMediaWebPage
+from telethon.tl.types import (
+    InputPeerChannel,
+    MessageMediaPhoto,
+    MessageMediaWebPage,
+)
 
-# from config import Config
-from .config import Config
-
-# from . import
-# # from config import Config
-# from telegram_to_rss.config import Config
-# import telegram_to_rss
-# from config import Config
-# from . import config
+from telegram_to_rss.config import Config
 
 OFFLINE = False
 telegram_client = None
@@ -27,6 +23,10 @@ config = None
 
 def get_hello():
     return "hello"
+
+
+def bye():
+    return "Not " + get_hello()
 
 
 def get_telegram_client():
@@ -71,6 +71,11 @@ def load_channels_posts(channel, entity):
     #     for m in loaded:
     #         print(m)
     #     return loaded
+    # import telethon
+    # msg = telethon.tl.custom.Message(id=1)
+    # msg.text = "text"
+    # return [msg]
+    return [1]
 
     print("loadChannelsPosts")
     print(str(channel) + " " + str(entity))
@@ -78,6 +83,11 @@ def load_channels_posts(channel, entity):
     t = client.get_messages(entity, limit=15)
 
     messages = list(t)
+
+    messages_json = [m.to_json() for m in messages]
+    print(type(messages[0]))
+    print(messages[0].to_dict())
+    exit(1)
 
     # messages_json = [m.to_json() for m in messages]
     #
@@ -196,7 +206,8 @@ def get_posts(channel, entity):
     return posts
 
 
-def make_rss(channel, entity):
+def get_grouped_posts_from_channel(channel, entity):
+    # return []
     posts = get_posts(channel, entity)
     n = len(posts)
 
@@ -258,6 +269,12 @@ def make_rss(channel, entity):
 
         posts.append(p)
 
+    return posts
+
+
+def make_rss(channel, entity):
+    posts = get_grouped_posts_from_channel(channel, entity)
+
     print("start generate rss file")
     fg = FeedGenerator()
     fg.title(channel)
@@ -265,8 +282,6 @@ def make_rss(channel, entity):
     fg.link(href="https://t.me/s/" + channel, rel="alternate")
     fg.link(href=config.urls.rss_path + channel + "/rss.xml", rel="self")
     for p in posts:
-        # print(p)
-
         fe = fg.add_entry()
         fe.title(p["title"])
         fe.pubDate(p["date"])
@@ -340,8 +355,8 @@ def send_heartbeat():
 def main():
     global config
     config = Config()
-    # channels = loadChannelsInfo("channels_test.txt")
-    channels = load_channels_info("channels.txt")
+    channels = load_channels_info("channels_test.txt")
+    # channels = load_channels_info("channels.txt")
 
     for c in channels:
         try:
@@ -367,6 +382,5 @@ def main():
     send_heartbeat()
 
 
-# main()
-
-# print("run_main")
+if __name__ == "__main__":
+    main()
