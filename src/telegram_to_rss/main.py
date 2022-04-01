@@ -84,7 +84,7 @@ def load_channels_posts(channel, entity):
 
     messages = list(t)
 
-    messages_json = [m.to_json() for m in messages]
+    # messages_json = [m.to_json() for m in messages]
     print(type(messages[0]))
     print(messages[0].to_dict())
     exit(1)
