@@ -1,0 +1,15 @@
+.idea
+.git.bak
+dump.txt
+rss
+images
+venv
+
+log.txt
+messages.pkl
+
+# private data
+channels_info.json
+config.json
+*.session
+*.session.bak
