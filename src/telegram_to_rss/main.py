@@ -75,7 +75,7 @@ def load_channels_posts(channel, entity):
     # msg = telethon.tl.custom.Message(id=1)
     # msg.text = "text"
     # return [msg]
-    return [1]
+    # return [1]
 
     print("loadChannelsPosts")
     print(str(channel) + " " + str(entity))
@@ -87,7 +87,7 @@ def load_channels_posts(channel, entity):
     # messages_json = [m.to_json() for m in messages]
     print(type(messages[0]))
     print(messages[0].to_dict())
-    exit(1)
+    # exit(1)
 
     # messages_json = [m.to_json() for m in messages]
     #
@@ -198,6 +198,9 @@ def message_to_post(message, channel):
 def get_posts(channel, entity):
     posts = []
     messages = load_channels_posts(channel, entity)
+    # print(messages[0].text)
+    # print(messages[0].text111)
+    # exit(0)
     for message in messages:
         post = message_to_post(message, channel)
         if post is not None:
@@ -237,8 +240,8 @@ def get_grouped_posts_from_channel(channel, entity):
 
     if len(groups) > 0:
         cur = groups[0]
-        if len(cur) > 1:
-            last_post = cur[1]["date"]
+        if len(cur) > 0:  # > 1
+            last_post = cur[0]["date"]  # 1
             now = time.time()
             print("now", now)
             since_last_post = now - last_post.timestamp()
