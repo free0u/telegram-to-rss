@@ -5,7 +5,7 @@ import pytest
 from telegram_to_rss import main as _main
 from telegram_to_rss.config import Config, UrlConfig
 from telegram_to_rss.main import get_grouped_posts_from_channel
-from tests.helpers.messages_generator import *
+from tests.helpers.messages_generator import gen_message, timestamp_to_datetime_string
 
 
 @pytest.fixture
