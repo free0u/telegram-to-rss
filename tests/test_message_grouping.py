@@ -2,22 +2,21 @@ import time
 
 import pytest
 
-from telegram_to_rss import main as _main
 from telegram_to_rss.config import Config, UrlConfig
-from telegram_to_rss.main import get_grouped_posts_from_channel
+from telegram_to_rss.posts.converter import get_grouped_posts, messages_to_posts
+from telegram_to_rss.telegram.channels import ChannelAccessInfo
 from tests.helpers.messages_generator import gen_message, timestamp_to_datetime_string
 
 
 @pytest.fixture
 def mock_config(mocker):
-    config = Config(UrlConfig("rss_path/", None, None), None)
-    mock = mocker.patch.object(_main, "config", config)
+    _config = Config(UrlConfig("rss_path/", None, None), None)
+    mock = mocker.patch("telegram_to_rss.posts.converter.config")
+    mock.return_value = _config
     return mock
 
 
-def test_grouping(mocker, mock_config):
-    mock = mocker.patch("telegram_to_rss.main.load_channels_posts")
-
+def test_grouping(mock_config):
     # from old to start
     messages = [
         gen_message(1, "ignored 1", "2021-11-04T00:05:23"),
@@ -44,10 +43,10 @@ def test_grouping(mocker, mock_config):
             timestamp_to_datetime_string(time.time() - 5 * 60),  # now - 5 minutes
         ),
     ]
+    messages = list(reversed(messages))
 
-    mock.return_value = list(reversed(messages))
-
-    posts = get_grouped_posts_from_channel("channel", "entity_id")
+    single_posts = messages_to_posts(ChannelAccessInfo("channel", "hash"), messages)
+    posts = get_grouped_posts(single_posts)
     assert len(posts) == 4
 
     posts = list(reversed(posts))

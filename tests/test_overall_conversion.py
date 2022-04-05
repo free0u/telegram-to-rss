@@ -2,9 +2,9 @@ import time
 
 import pytest
 
-from telegram_to_rss import main as _main
 from telegram_to_rss.config import Config, UrlConfig
-from telegram_to_rss.main import get_grouped_posts_from_channel
+from telegram_to_rss.posts.converter import get_grouped_posts, messages_to_posts
+from telegram_to_rss.telegram.channels import ChannelAccessInfo
 from tests.helpers.messages_generator import (
     gen_message,
     gen_message_media_photo,
@@ -16,15 +16,17 @@ from tests.helpers.messages_generator import (
 
 @pytest.fixture
 def mock_config(mocker):
-    config = Config(UrlConfig("rss_path/", None, None), None)
-    mock = mocker.patch.object(_main, "config", config)
+    _config = Config(UrlConfig("rss_path/", None, None), None)
+    # mock = mocker.patch.object(
+    #     telegram_to_rss.posts.converter, "config", _config
+    # )
+    mock = mocker.patch("telegram_to_rss.posts.converter.config")
+    mock.return_value = _config
+
     return mock
 
 
-@pytest.fixture
-def mock_load_channels_posts(mocker):
-    mock = mocker.patch("telegram_to_rss.main.load_channels_posts")
-
+def mess():
     # from old to start
     messages = [
         gen_message(1, "ignored start", "2021-11-04T00:05:23+00:00"),
@@ -60,13 +62,12 @@ def mock_load_channels_posts(mocker):
             timestamp_to_datetime_string(time.time() - 5 * 60),  # now - 5 minutes
         ),
     ]
-
-    mock.return_value = list(reversed(messages))
-    return mock
+    return list(reversed(messages))
 
 
-def test_conversion(mock_load_channels_posts, mock_config):
-    posts = get_grouped_posts_from_channel("channel", "entity_id")
+def test_conversion(mock_config):
+    single_posts = messages_to_posts(ChannelAccessInfo("channel", "hash"), mess())
+    posts = get_grouped_posts(single_posts)
     assert len(posts) == 5
 
     posts = list(reversed(posts))

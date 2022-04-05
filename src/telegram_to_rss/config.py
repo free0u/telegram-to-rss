@@ -4,6 +4,22 @@ from dataclasses import dataclass
 
 CONFIG_PATH = "config.json"
 
+config_old = None
+_config = None
+
+
+def config():
+    global _config
+    if _config is None:
+        _config = Config.create_from_file()
+    return _config
+
+
+def init_config():
+    global _config
+    _config = Config(None, None)
+    global cnt
+
 
 @dataclass
 class TelegramCreds:
