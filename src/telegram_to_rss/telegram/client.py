@@ -18,4 +18,5 @@ def get_telegram_client():
         client.parse_mode = "html"
         client.start()
         telegram_client = client
+
     return telegram_client

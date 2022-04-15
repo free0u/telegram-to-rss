@@ -1,6 +1,7 @@
 import time
 from pathlib import Path
 
+from telegram_to_rss.config import init_config
 from telegram_to_rss.heartbeat import send_heartbeat
 from telegram_to_rss.posts.converter import (
     messages_to_posts,
@@ -36,6 +37,7 @@ def process_channel(channel_access_info: ChannelAccessInfo):
 
 
 def main():
+    init_config()
     channels = load_channels_info("channels_test.txt")
     # channels = load_channels_info("channels.txt")
 
