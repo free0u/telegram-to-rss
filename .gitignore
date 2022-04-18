@@ -2,7 +2,7 @@
 .git.bak
 .coverage
 dump.txt
-rss
+/rss
 images
 venv
 
