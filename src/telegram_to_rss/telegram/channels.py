@@ -14,17 +14,24 @@ class ChannelAccessInfo:
     access_info: InputPeerChannel
 
 
-def remove_channel_from_cache(channel_name):
+def _remove_channel_from_cache_impl(file_name, channel_name):
     # channel_info = {}
-    with open(CHANNELS_INFO_JSON, "r") as json_file:
+    with open(file_name, "r") as json_file:
         channel_info = json.load(json_file)
 
     if channel_info.pop(channel_name, None) is not None:
-        with open(CHANNELS_INFO_JSON, "w") as outfile:
+        with open(file_name, "w") as outfile:
             json.dump(channel_info, outfile, sort_keys=True, indent=4)
+            return True
+
+    return False
 
 
-def load_channels_info(channel_list_file):
+def remove_channel_from_cache(channel_name):
+    _remove_channel_from_cache_impl(CHANNELS_INFO_JSON, channel_name)
+
+
+def _load_channels_info_impl(file_name, channel_list_file):
     # channel_names = []
     with open(channel_list_file, "r") as f:
         channel_names = f.readlines()
@@ -37,7 +44,7 @@ def load_channels_info(channel_list_file):
     print(channel_names)
 
     # channel_info = {}
-    with open(CHANNELS_INFO_JSON, "r") as json_file:
+    with open(file_name, "r") as json_file:
         channel_info = json.load(json_file)
 
     changed = False
@@ -50,7 +57,7 @@ def load_channels_info(channel_list_file):
             changed = True
 
     if changed:
-        with open(CHANNELS_INFO_JSON, "w") as outfile:
+        with open(file_name, "w") as outfile:
             json.dump(channel_info, outfile, sort_keys=True, indent=4)
 
     channels = []
@@ -62,3 +69,7 @@ def load_channels_info(channel_list_file):
         print(channel_name + ": " + str(user))
 
     return channels
+
+
+def load_channels_info(channel_list_file):
+    return _load_channels_info_impl(CHANNELS_INFO_JSON, channel_list_file)
