@@ -75,10 +75,10 @@ def test_loading_existed(mock_config, mock_telethon, tmpdir):
 
 
 def test_loading_not_existed(mock_config, mock_telethon, tmpdir):
-    TEST_USER_ID = 100
-    TEST_ACCESS_HASH = 200
+    test_user_id = 100
+    test_access_hash = 200
     mock_telethon.return_value.get_input_entity.return_value = InputPeerChannel(
-        TEST_USER_ID, TEST_ACCESS_HASH
+        test_user_id, test_access_hash
     )
 
     channels_info = tmpdir.join("channels.json")
@@ -95,13 +95,13 @@ def test_loading_not_existed(mock_config, mock_telethon, tmpdir):
     assert mock_telethon.called
 
     assert channels == [
-        ChannelAccessInfo("a", InputPeerChannel(TEST_USER_ID, TEST_ACCESS_HASH))
+        ChannelAccessInfo("a", InputPeerChannel(test_user_id, test_access_hash))
     ]
 
     assert read_json_from_test_file(channels_info) == {
         "a": {
-            "access_hash": TEST_ACCESS_HASH,
-            "channel_id": TEST_USER_ID,
+            "access_hash": test_access_hash,
+            "channel_id": test_user_id,
         }
     }
 
