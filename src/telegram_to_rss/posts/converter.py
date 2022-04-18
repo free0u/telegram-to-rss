@@ -6,6 +6,7 @@ from telethon.tl.types import MessageMediaPhoto, MessageMediaWebPage
 
 from telegram_to_rss.config import config
 from telegram_to_rss.posts.post import Post
+from telegram_to_rss.posts.template import env
 
 
 def extract_title(text):
@@ -22,103 +23,99 @@ def is_ad(title, content):
     return False
 
 
-def process_media_and_modify_content(message, channel, content):
-    if message.media:
-        need_add_tag = True
+def download_photo_if_not_exists(message, path):
+    my_file = Path(path)
+    if not my_file.is_file():
+        message.download_media(file=path)
 
+
+def get_post_image(message, channel):
+    if message.media:
         if isinstance(message.media, MessageMediaPhoto):
-            need_add_tag = False
             image = message.photo
 
-            photo_path = "./images/" + channel + "/" + str(image.id) + ".jpg"
-            my_file = Path(photo_path)
-            if my_file.is_file():
-                pass
-            else:
-                message.download_media(file=photo_path)
-            img_tag = (
-                '<img src="'
-                + config().urls.rss_path
-                + photo_path[2:]
-                + '" width="800">'
+            photo_path = "./images/{}/{}.jpg".format(channel, str(image.id))
+            download_photo_if_not_exists(message, photo_path)
+            img_tag = '<img src="{}{}" width="800">'.format(
+                config().urls.rss_path, photo_path[2:]
             )
-            content = img_tag + "<br/>" + content
-        # print(text)
-        if isinstance(message.media, MessageMediaWebPage):
-            need_add_tag = False
+            return {"tag": img_tag}
+    return None
 
+
+# TODO
+# no image|title|descr case
+def get_post_webpage(message, channel):
+    if message.media:
+        if isinstance(message.media, MessageMediaWebPage):
             if message.web_preview:
                 # preview info
-                content += "<br/>-------------------<br/>"
+                webpage = {}
                 if message.web_preview.title:
-                    content += message.web_preview.title
-                    content += "<br/>"
+                    webpage["title"] = message.web_preview.title
                 if message.web_preview.description:
-                    content += message.web_preview.description
-                    content += "<br/>"
+                    webpage["description"] = message.web_preview.description
 
                 image = message.photo
                 if image:
-                    # print(message.to_json())
-                    photo_path = "./images/" + channel + "/" + str(image.id) + ".jpg"
-                    my_file = Path(photo_path)
-                    if my_file.is_file():
-                        pass
-                    else:
-                        message.download_media(file=photo_path)
-                    img_tag = (
-                        '<img src="'
-                        + config().urls.rss_path
-                        + photo_path[2:]
-                        + '" width="400">'
+                    photo_path = "./images/{}/{}.jpg".format(channel, str(image.id))
+                    download_photo_if_not_exists(message, photo_path)
+                    img_tag = '<img src="{}{}" width="400">'.format(
+                        config().urls.rss_path, photo_path[2:]
                     )
-                    content += img_tag
+                    webpage["image"] = img_tag
+                return webpage
+    return None
 
-                content += "<br/>-------------------<br/>"
-            pass
-        # if isinstance(message.media, MessageMediaDocument):
-        #     print(message.document.to_json())
-        #     print(message.video)
-        #     print(message.file)
-        #     pass
 
-        if need_add_tag:
-            media_type = str(type(message.media).__name__)
-            content = "📦 " + media_type + "<br/>" + content
-
-    return content
+def get_post_media_type(message):
+    if message.media:
+        media_type = str(type(message.media).__name__)
+        return {"media_type": media_type}
+    return None
 
 
 # here parsing telegram post to inner object
 def message_to_post(message, channel):
+    # text
     text = ""
     if message.text is not None:
         text = message.text
-    title = extract_title(text)
     text = text.replace("\n", "<br/>")
 
-    date = message.date
-    media_type = ""
-
+    # title
+    title = extract_title(text)
     if len(title) == 0:
         title = str(message.id)
-    print(date, title)
-
-    text = process_media_and_modify_content(message, channel, text)
-
-    title = str(title)
-    url = "https://t.me/" + channel + "/" + str(message.id)
-
     if is_ad(title, text):
         title = "РЕКЛАМА {}".format(title)
 
-    return Post(
-        title=title,
+    # date
+    date = message.date
+
+    # url
+    url = "https://t.me/{}/{}".format(channel, str(message.id))
+
+    print(date, title)
+
+    # insert media in text
+    image = get_post_image(message, channel)
+    webpage = get_post_webpage(message, channel)
+    if image is None and webpage is None:
+        general_media = get_post_media_type(message)
+    else:
+        general_media = None
+
+    one_post_template = env.get_template("one_post.txt")
+    text = one_post_template.render(
         content=text,
-        url=url,
-        date=date,
-        media_type_str=media_type,
+        image=image,
+        webpage=webpage,
+        general_media=general_media,
     )
+    text = text.replace("\n", "")
+
+    return Post(title, text, url, date)
 
 
 def messages_to_posts(channel_access_info, messages):
@@ -184,19 +181,18 @@ def get_grouped_posts(posts: [Post]):
             print(j.date, j.title)
 
     posts = []
-    for i in range(len(groups)):
-        cur = groups[i]
-        cur = list(reversed(cur))
-        if len(cur) == 0:
+    for group in groups:
+        if len(group) == 0:
             continue
 
-        p = cur[0]
+        cur_group = list(reversed(group))
+        first_post = cur_group[0]
 
-        common_text = "<br/>***********<br/>".join(map(lambda x: x.content, cur))
+        common_text = "<br/>***********<br/>".join(map(lambda x: x.content, cur_group))
 
-        p.content = common_text
-        print(p)
+        first_post.content = common_text
+        print(first_post)
 
-        posts.append(p)
+        posts.append(first_post)
 
     return posts

@@ -33,6 +33,7 @@ def mess():
         gen_message(1, "ignored end", "2021-11-04T00:05:23+00:00"),
         gen_message(2, "text post start", "2021-11-05T00:05:23+00:00"),
         gen_message(3, "text post end", "2021-11-05T00:07:23+00:00"),
+        gen_message(123, "", "2021-11-06T00:05:23+00:00"),
         gen_message(
             3,
             "photo post start single",
@@ -68,19 +69,22 @@ def mess():
 def test_conversion(mock_config):
     single_posts = messages_to_posts(ChannelAccessInfo("channel", "hash"), mess())
     posts = get_grouped_posts(single_posts)
-    assert len(posts) == 5
+    assert len(posts) == 6
 
     posts = list(reversed(posts))
     text_post_from_two_messages = posts[0]
-    post_with_image = posts[1]
-    post_with_webpage = posts[2]
-    post_with_document = posts[3]
-    post_with_ad = posts[4]
+    empty_post = posts[1]
+    post_with_image = posts[2]
+    post_with_webpage = posts[3]
+    post_with_document = posts[4]
+    post_with_ad = posts[5]
 
     assert (
         text_post_from_two_messages.content
         == "text post start<br/>***********<br/>text post end"
     )
+
+    assert empty_post.content == "" and empty_post.title == "123"
 
     assert (
         post_with_image.content
@@ -91,6 +95,7 @@ def test_conversion(mock_config):
         post_with_webpage.content
         == "webpage post single<br/>-------------------<br/>web title<br/>web descr<br/>"
         + '<img src="rss_path/images/channel/4.jpg" width="400"><br/>-------------------<br/>'
+        and post_with_webpage.title == "webpage post single"
     )
 
     assert (

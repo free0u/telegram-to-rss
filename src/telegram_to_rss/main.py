@@ -1,24 +1,19 @@
 import time
 from pathlib import Path
 
-from jinja2 import Environment, PackageLoader, select_autoescape
-
 from telegram_to_rss.config import init_config
 from telegram_to_rss.heartbeat import send_heartbeat
 from telegram_to_rss.posts.converter import (
     messages_to_posts,
     get_grouped_posts,
 )
+from telegram_to_rss.posts.template import env
 from telegram_to_rss.rss.rss_generator import make_rss, generate_channel_subscribe_list
 from telegram_to_rss.telegram.channels import (
     load_channels_info,
     ChannelAccessInfo,
 )
 from telegram_to_rss.telegram.messages import load_channels_posts
-
-env = Environment(
-    loader=PackageLoader("telegram_to_rss"), autoescape=select_autoescape()
-)
 
 
 def process_channel(channel_access_info: ChannelAccessInfo):

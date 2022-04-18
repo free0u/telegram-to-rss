@@ -8,4 +8,3 @@ class Post:
     content: str
     url: str
     date: datetime
-    media_type_str: str

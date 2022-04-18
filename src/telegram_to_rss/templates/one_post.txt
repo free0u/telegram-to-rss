@@ -1,0 +1,18 @@
+{% if general_media %}
+📦 {{ general_media.media_type }}<br/>
+{% endif %}
+
+{% if image %}
+{{ image.tag }}<br/>
+{% endif %}
+
+{{ content }}
+
+{% if webpage %}
+<br/>-------------------<br/>
+{% if webpage.title %}{{ webpage.title }}<br/>{% endif %}
+{% if webpage.description %}{{ webpage.description }}<br/>{% endif %}
+{% if webpage.image %}{{ webpage.image }}{% endif %}
+<br/>-------------------<br/>
+{% endif %}
+
