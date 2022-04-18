@@ -37,7 +37,7 @@ def load_channels_posts(channel_access_info):
         print("loadChannelsPosts")
         print(str(channel) + " " + str(entity))
         client = get_telegram_client()
-        t = client.get_messages(entity, limit=15)
+        t = client.get_messages(entity, limit=30)
 
         messages = list(t)
 

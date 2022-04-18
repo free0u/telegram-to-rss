@@ -130,6 +130,8 @@ def get_grouped_posts(posts):
 
     print("\n\nGroup processing")
     groups = [[]]
+    # TODO iterate from old to last and break group each 7 (for example) posts to break long chains
+    # or NOT
     if n != 0:
         groups = []
         cur = [posts[0]]
@@ -148,10 +150,12 @@ def get_grouped_posts(posts):
         if len(cur) > 0:
             groups.append(cur)
 
+    # remove oldest group
     if len(groups) > 0:
         groups = groups[:-1]
         pass
 
+    # remove newest group if too new
     if len(groups) > 0:
         cur = groups[0]
         if len(cur) > 0:  # > 1
