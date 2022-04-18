@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>All rss links</title>
+</head>
+<body>
+    <ul id="navigation">
+    {% for link in links %}
+        <li><a href="http://example.com/{{ link }}">{{ link }}</a></li>
+    {% endfor %}
+    </ul>
+</body>
+</html>

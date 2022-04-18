@@ -1,6 +1,8 @@
 import time
 from pathlib import Path
 
+from jinja2 import Environment, PackageLoader, select_autoescape
+
 from telegram_to_rss.config import init_config
 from telegram_to_rss.heartbeat import send_heartbeat
 from telegram_to_rss.posts.converter import (
@@ -13,6 +15,10 @@ from telegram_to_rss.telegram.channels import (
     ChannelAccessInfo,
 )
 from telegram_to_rss.telegram.messages import load_channels_posts
+
+env = Environment(
+    loader=PackageLoader("telegram_to_rss"), autoescape=select_autoescape()
+)
 
 
 def process_channel(channel_access_info: ChannelAccessInfo):
@@ -43,6 +49,11 @@ def main():
 
     for c in channels:
         process_channel(c)
+
+    template = env.get_template("all_rss.html")
+    print(template)
+    print(template.render(the="variables", go="here"))
+    template.stream(links=["link1", "link2"]).dump("./rss/all/index2.html")
 
     generate_channel_subscribe_list(channels)
     send_heartbeat()
