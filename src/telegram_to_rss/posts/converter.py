@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 from telethon.tl.types import MessageMediaPhoto, MessageMediaWebPage
 
 from telegram_to_rss.config import config
+from telegram_to_rss.posts.post import Post
 
 
 def extract_title(text):
@@ -13,30 +14,15 @@ def extract_title(text):
     return all_text.split("\n")[0][:80]
 
 
-def is_ad(post):
-    if "#нативнаяинтеграция" in post["text"]:
+def is_ad(title, content):
+    if "#нативнаяинтеграция" in content:
         return True
-    if "РЕКЛАМИЩЕ ВЕЛИКОЕ" in post["title"]:
+    if "РЕКЛАМИЩЕ ВЕЛИКОЕ" in title:
         return True
     return False
 
 
-# here parsing telegram post to inner object
-def message_to_post(message, channel):
-    text = ""
-    if message.text is not None:
-        text = message.text
-    title = extract_title(text)
-    text = text.replace("\n", "<br/>")
-
-    date = message.date
-    media_type = ""
-
-    if len(title) == 0:
-        title = str(message.id)
-    print(date, title)
-    # print(message.to_json())
-    post = {}
+def process_media_and_modify_content(message, channel, content):
     if message.media:
         need_add_tag = True
 
@@ -56,20 +42,20 @@ def message_to_post(message, channel):
                 + photo_path[2:]
                 + '" width="800">'
             )
-            text = img_tag + "<br/>" + text
+            content = img_tag + "<br/>" + content
         # print(text)
         if isinstance(message.media, MessageMediaWebPage):
             need_add_tag = False
 
             if message.web_preview:
                 # preview info
-                text += "<br/>-------------------<br/>"
+                content += "<br/>-------------------<br/>"
                 if message.web_preview.title:
-                    text += message.web_preview.title
-                    text += "<br/>"
+                    content += message.web_preview.title
+                    content += "<br/>"
                 if message.web_preview.description:
-                    text += message.web_preview.description
-                    text += "<br/>"
+                    content += message.web_preview.description
+                    content += "<br/>"
 
                 image = message.photo
                 if image:
@@ -86,9 +72,9 @@ def message_to_post(message, channel):
                         + photo_path[2:]
                         + '" width="400">'
                     )
-                    text += img_tag
+                    content += img_tag
 
-                text += "<br/>-------------------<br/>"
+                content += "<br/>-------------------<br/>"
             pass
         # if isinstance(message.media, MessageMediaDocument):
         #     print(message.document.to_json())
@@ -98,18 +84,41 @@ def message_to_post(message, channel):
 
         if need_add_tag:
             media_type = str(type(message.media).__name__)
-            text = "📦 " + media_type + "<br/>" + text
+            content = "📦 " + media_type + "<br/>" + content
 
-    post["text"] = text
-    post["title"] = str(title)
-    post["media_type"] = media_type
-    post["date"] = date
-    post["url"] = "https://t.me/" + channel + "/" + str(message.id)
+    return content
 
-    if is_ad(post):
-        post["title"] = "РЕКЛАМА {}".format(post["title"])
 
-    return post
+# here parsing telegram post to inner object
+def message_to_post(message, channel):
+    text = ""
+    if message.text is not None:
+        text = message.text
+    title = extract_title(text)
+    text = text.replace("\n", "<br/>")
+
+    date = message.date
+    media_type = ""
+
+    if len(title) == 0:
+        title = str(message.id)
+    print(date, title)
+
+    text = process_media_and_modify_content(message, channel, text)
+
+    title = str(title)
+    url = "https://t.me/" + channel + "/" + str(message.id)
+
+    if is_ad(title, text):
+        title = "РЕКЛАМА {}".format(title)
+
+    return Post(
+        title=title,
+        content=text,
+        url=url,
+        date=date,
+        media_type_str=media_type,
+    )
 
 
 def messages_to_posts(channel_access_info, messages):
@@ -124,7 +133,7 @@ def messages_to_posts(channel_access_info, messages):
     return posts
 
 
-def get_grouped_posts(posts):
+def get_grouped_posts(posts: [Post]):
     # posts = get_posts(channel, entity)
     n = len(posts)
 
@@ -137,8 +146,8 @@ def get_grouped_posts(posts):
         cur = [posts[0]]
         for i in range(1, n):
             # reverse order
-            prev_date = posts[i]["date"]
-            cur_date = posts[i - 1]["date"]
+            prev_date = posts[i].date
+            cur_date = posts[i - 1].date
             delta = cur_date.timestamp() - prev_date.timestamp()
             # print(delta)
             # print(type(cur_date))
@@ -159,7 +168,7 @@ def get_grouped_posts(posts):
     if len(groups) > 0:
         cur = groups[0]
         if len(cur) > 0:  # > 1
-            last_post = cur[0]["date"]  # 1
+            last_post = cur[0].date  # 1
             now = time.time()
             print("now", now)
             since_last_post = now - last_post.timestamp()
@@ -172,7 +181,7 @@ def get_grouped_posts(posts):
     for i in range(len(groups)):
         print("Group: " + str(i))
         for j in groups[i]:
-            print(j["date"], j["title"])
+            print(j.date, j.title)
 
     posts = []
     for i in range(len(groups)):
@@ -183,9 +192,9 @@ def get_grouped_posts(posts):
 
         p = cur[0]
 
-        common_text = "<br/>***********<br/>".join(map(lambda x: x["text"], cur))
+        common_text = "<br/>***********<br/>".join(map(lambda x: x.content, cur))
 
-        p["text"] = common_text
+        p.content = common_text
         print(p)
 
         posts.append(p)

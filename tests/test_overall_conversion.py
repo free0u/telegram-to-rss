@@ -78,28 +78,27 @@ def test_conversion(mock_config):
     post_with_ad = posts[4]
 
     assert (
-        text_post_from_two_messages["text"]
+        text_post_from_two_messages.content
         == "text post start<br/>***********<br/>text post end"
     )
 
     assert (
-        post_with_image["text"]
+        post_with_image.content
         == '<img src="rss_path/images/channel/111.jpg" width="800"><br/>photo post start single'
     )
 
     assert (
-        post_with_webpage["text"]
+        post_with_webpage.content
         == "webpage post single<br/>-------------------<br/>web title<br/>web descr<br/>"
         + '<img src="rss_path/images/channel/4.jpg" width="400"><br/>-------------------<br/>'
     )
 
     assert (
-        post_with_document["text"]
+        post_with_document.content
         == "📦 MessageMediaDocument<br/>media document post single"
     )
 
     assert (
-        post_with_ad["text"] == "text post with ad single #нативнаяинтеграция"
-        and post_with_ad["title"]
-        == "РЕКЛАМА text post with ad single #нативнаяинтеграция"
+        post_with_ad.content == "text post with ad single #нативнаяинтеграция"
+        and post_with_ad.title == "РЕКЛАМА text post with ad single #нативнаяинтеграция"
     )

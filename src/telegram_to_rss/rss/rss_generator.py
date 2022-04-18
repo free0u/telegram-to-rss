@@ -1,10 +1,11 @@
 from feedgen.feed import FeedGenerator
 
 from telegram_to_rss.config import config
+from telegram_to_rss.posts.post import Post
 from telegram_to_rss.telegram.channels import ChannelAccessInfo
 
 
-def make_rss(channel_access_info: ChannelAccessInfo, posts):
+def make_rss(channel_access_info: ChannelAccessInfo, posts: [Post]):
     channel = (
         channel_access_info.name
     )  # posts = get_grouped_posts_from_channel(channel, entity)
@@ -17,11 +18,11 @@ def make_rss(channel_access_info: ChannelAccessInfo, posts):
     fg.link(href=config().urls.rss_path + channel + "/rss.xml", rel="self")
     for p in posts:
         fe = fg.add_entry()
-        fe.title(p["title"])
-        fe.pubDate(p["date"])
-        fe.id(p["url"])
-        fe.content(content=p["text"])
-        fe.link(href=p["url"])
+        fe.title(p.title)
+        fe.pubDate(p.date)
+        fe.id(p.url)
+        fe.content(content=p.content)
+        fe.link(href=p.url)
 
     # file_name = "./rss/" + channel + "/rss.xml"
     file_name = "./rss/{}/rss.xml".format(channel)

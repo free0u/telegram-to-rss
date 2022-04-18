@@ -82,4 +82,4 @@ def test_ignore_not_all_first_last_message_many(mock_config):
     posts = get_grouped_posts(single_posts)
     assert len(posts) == 1
 
-    assert posts[0]["text"] == "text"
+    assert posts[0].content == "text"

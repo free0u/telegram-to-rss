@@ -51,12 +51,12 @@ def test_grouping(mock_config):
 
     posts = list(reversed(posts))
 
-    assert posts[0]["text"] == "text 1"
+    assert posts[0].content == "text 1"
 
     assert (
-        posts[1]["text"]
+        posts[1].content
         == "text 2.1<br/>***********<br/>text 2.2<br/>***********<br/>text 2.3"
     )
-    assert posts[2]["text"] == "text 3"
+    assert posts[2].content == "text 3"
 
-    assert posts[3]["text"] == "text 4"
+    assert posts[3].content == "text 4"
