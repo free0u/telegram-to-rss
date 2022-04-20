@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
+    <title>All rss links</title>
+    <style>
+        table, th, td {
+          border:1px solid black;
+        }
+
+    </style>
+</head>
+<body>
+<table>
+    <tr>
+        <th>канал</th>
+        <th>последнее сообщение</th>
+        <th>первое сообщение</th>
+        <th>частота</th>
+        <th>кол-во</th>
+        <!--        <th>Contact</th>-->
+        <!--        <th>Country</th>-->
+    </tr>
+    {% for stat in stats %}
+    <tr>
+        <td><a href="{{ stat.telegram_url }}">{{ stat.channel_name }}</a> (<a href="{{ stat.rss_url }}">rss</a>)</td>
+        <td>{{ stat.last_date }}</td>
+        <td>{{ stat.first_date }}</td>
+        <td>{{ stat.posts_by_day|round(1) }}</td>
+        <td>{{ stat.posts_num }}</td>
+
+    </tr>
+    {% endfor %}
+</table>
+
+<!--    {% for link in links %}-->
+<!--        <li><a href="http://example.com/{{ link }}">{{ link }}</a></li>-->
+<!--    {% endfor %}-->
+
+</body>
+</html>
+
